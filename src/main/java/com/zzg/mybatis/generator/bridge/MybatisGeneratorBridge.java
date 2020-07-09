@@ -141,6 +141,8 @@ public class MybatisGeneratorBridge {
         JDBCConnectionConfiguration jdbcConfig = new JDBCConnectionConfiguration();
         if (DbType.MySQL.name().equals(dbType) || DbType.MySQL_8.name().equals(dbType)) {
 	        jdbcConfig.addProperty("nullCatalogMeansCurrent", "true");
+	        // useInformationSchema可以拿到表注释，从而生成类注释可以使用表的注释
+	        jdbcConfig.addProperty("useInformationSchema", "true");
         }
         jdbcConfig.setDriverClass(DbType.valueOf(dbType).getDriverClass());
         jdbcConfig.setConnectionURL(DbUtil.getConnectionUrlWithSchema(selectedDatabaseConfig));
@@ -188,8 +190,16 @@ public class MybatisGeneratorBridge {
         serializablePluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.SerializablePlugin");
         serializablePluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.SerializablePlugin");
         context.addPluginConfiguration(serializablePluginConfiguration);
+
+        // Lombok 插件
+        if (generatorConfig.isUseLombokPlugin()) {
+            PluginConfiguration pluginConfiguration = new PluginConfiguration();
+            pluginConfiguration.addProperty("type", "com.softwareloop.mybatis.generator.plugins.LombokPlugin");
+            pluginConfiguration.setConfigurationType("com.softwareloop.mybatis.generator.plugins.LombokPlugin");
+            context.addPluginConfiguration(pluginConfiguration);
+        }
         // toString, hashCode, equals插件
-        if (generatorConfig.isNeedToStringHashcodeEquals()) {
+        else if (generatorConfig.isNeedToStringHashcodeEquals()) {
             PluginConfiguration pluginConfiguration1 = new PluginConfiguration();
             pluginConfiguration1.addProperty("type", "org.mybatis.generator.plugins.EqualsHashCodePlugin");
             pluginConfiguration1.setConfigurationType("org.mybatis.generator.plugins.EqualsHashCodePlugin");
